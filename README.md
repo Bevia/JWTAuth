@@ -9,6 +9,11 @@ This ensures that your app.jwt.secret property has a strong enough key for HS256
 
 ⸻
 
+✅ To run your local server:
+./gradlew bootRun
+
+⸻
+
 ✅ After the app starts, test it with curl:
 
 Login
