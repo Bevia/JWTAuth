@@ -1,30 +1,14 @@
-If you’re on macOS, the fastest fix is to generate a proper 32-byte secret and export it before running the service.
+THis is one microservice ✅ — the JWTAuth service.
 
-Run this in your terminal (in the same session where you’ll launch the app):
+It has a few internal components (controllers, filter, service, store), 
+but they’re all inside the same Spring Boot app, running on port 9000.
 
-export JWT_SECRET=$(openssl rand -base64 32)
-./gradlew bootRun
+Your architecture so far looks like this:
+•	JWTAuth Microservice
+•	AuthController → login & refresh endpoints
+•	SecureController → protected endpoints
+•	JwtAuthFilter → intercepts requests, validates tokens
+•	JwtService → generates & parses JWTs
+•	UserStore → (in-memory user/password for now)
 
-This ensures that your app.jwt.secret property has a strong enough key for HS256.
-
-⸻
-
-✅ To run your local server:
-./gradlew bootRun
-
-⸻
-
-✅ After the app starts, test it with curl:
-
-Login
-
-curl -i http://localhost:9000/auth/login \
--H 'Content-Type: application/json' \
--d '{"username":"demo","password":"demo"}'
-
-Refresh
-
-curl -i http://localhost:9000/auth/refresh \
--H 'Content-Type: application/json' \
--d '{"refreshToken":"<PASTE_REFRESH>"}'
-
+👉 That’s still one microservice.
