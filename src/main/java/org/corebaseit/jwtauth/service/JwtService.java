@@ -2,67 +2,78 @@ package org.corebaseit.jwtauth.service;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.corebaseit.jwtauth.web.dto.AuthDtos;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
-import java.time.Instant;
 import java.util.Date;
+import java.util.Map;
 
 @Service
 public class JwtService {
+
     private final String issuer;
-    private final Key key;
-    private final long accessMinutes;
-    private final long refreshDays;
+    private final SecretKey key;
+    private final long accessMillis;
+    private final long refreshMillis;
 
     public JwtService(
             @Value("${app.jwt.issuer}") String issuer,
             @Value("${app.jwt.secret}") String secret,
             @Value("${app.jwt.accessMinutes}") long accessMinutes,
-            @Value("${app.jwt.refreshDays}") long refreshDays) {
+            @Value("${app.jwt.refreshDays}") long refreshDays
+    ) {
         this.issuer = issuer;
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        this.accessMinutes = accessMinutes;
-        this.refreshDays = refreshDays;
+        this.accessMillis  = accessMinutes * 60_000L;
+        this.refreshMillis = refreshDays * 24L * 60L * 60L * 1000L;
     }
 
-    public AuthDtos.LoginResponse generateTokens(String subject) {
-        var now = Instant.now();
-        var accessExp = now.plusSeconds(accessMinutes * 60);
-        var refreshExp = now.plusSeconds(refreshDays * 24 * 60 * 60);
-
-        String at = Jwts.builder()
+    public String generateAccessToken(String subject, Map<String, Object> extraClaims) {
+        long now = System.currentTimeMillis();
+        return Jwts.builder()
                 .issuer(issuer)
                 .subject(subject)
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(accessExp))
-                .claim("typ", "access")
-                .signWith(key)
+                .issuedAt(new Date(now))
+                .expiration(new Date(now + accessMillis))
+                .claims(extraClaims == null ? Map.of() : extraClaims)
+                .signWith(key, Jwts.SIG.HS256)
                 .compact();
-
-        String rt = Jwts.builder()
-                .issuer(issuer)
-                .subject(subject)
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(refreshExp))
-                .claim("typ", "refresh")
-                .signWith(key)
-                .compact();
-
-        long expiresIn = accessMinutes * 60;
-        return new AuthDtos.LoginResponse(at, rt, expiresIn);
     }
 
-    public AuthDtos.LoginResponse refresh(String refreshToken) {
-        var parsed = Jwts.parser().verifyWith((javax.crypto.SecretKey) key).build().parseSignedClaims(refreshToken);
-        var claims = parsed.getPayload();
-        if (!"refresh".equals(claims.get("typ"))) {
-            throw new IllegalArgumentException("Not a refresh token");
+    public String generateRefreshToken(String subject) {
+        long now = System.currentTimeMillis();
+        return Jwts.builder()
+                .issuer(issuer)
+                .subject(subject)
+                .issuedAt(new Date(now))
+                .expiration(new Date(now + refreshMillis))
+                .signWith(key, Jwts.SIG.HS256)
+                .compact();
+    }
+
+    public String getSubject(String jwt) {
+        var claims = Jwts.parser()
+                .requireIssuer(issuer)
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(jwt)
+                .getPayload();
+        return claims.getSubject();
+    }
+
+    public boolean isAccessTokenValid(String jwt) {
+        try {
+            Jwts.parser()
+                    .requireIssuer(issuer)
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(jwt);
+            return true;
+        } catch (Exception e) {
+            return false;
         }
-        var user = claims.getSubject();
-        return generateTokens(user);
     }
 }
