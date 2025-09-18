@@ -1,1 +1,1 @@
-![Auth ↔ Payment- JWT Login, Use, and Refresh (compact).png](Auth%20%E2%86%94%20Payment-%20JWT%20Login%2C%20Use%2C%20and%20Refresh%20%28compact%29.png)
+![Auth ↔ Payment- JWT Login, Use, and Refresh (compact).png](src/main/resources/Auth%20%E2%86%94%20Payment-%20JWT%20Login%2C%20Use%2C%20and%20Refresh%20%28compact%29.png)
