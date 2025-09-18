@@ -1,1 +1,3 @@
 rootProject.name = 'JWTAuth'
+
+include 'auth-service', 'resource-service'
