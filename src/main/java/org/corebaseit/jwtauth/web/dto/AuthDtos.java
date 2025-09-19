@@ -1,17 +1,21 @@
 package org.corebaseit.jwtauth.web.dto;
 
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class AuthDtos {
+    @Setter
+    @Getter
     public static class LoginRequest {
+        // getters/setters
         private String username;
         private String password;
-        // getters/setters
-        public String getUsername() { return username; }
-        public void setUsername(String username) { this.username = username; }
-        public String getPassword() { return password; }
-        public void setPassword(String password) { this.password = password; }
+
     }
 
+    @Setter
+    @Getter
     public static class LoginResponse {
         private String accessToken;
         private String refreshToken;
@@ -21,17 +25,13 @@ public class AuthDtos {
         public LoginResponse(String accessToken, String refreshToken, long expiresIn) {
             this.accessToken = accessToken; this.refreshToken = refreshToken; this.expiresIn = expiresIn;
         }
-        public String getAccessToken() { return accessToken; }
-        public void setAccessToken(String v) { this.accessToken = v; }
-        public String getRefreshToken() { return refreshToken; }
-        public void setRefreshToken(String v) { this.refreshToken = v; }
-        public long getExpiresIn() { return expiresIn; }
-        public void setExpiresIn(long v) { this.expiresIn = v; }
+
     }
 
+    @Setter
+    @Getter
     public static class RefreshRequest {
         private String refreshToken;
-        public String getRefreshToken() { return refreshToken; }
-        public void setRefreshToken(String refreshToken) { this.refreshToken = refreshToken; }
+
     }
 }
